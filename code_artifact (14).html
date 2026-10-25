@@ -1,0 +1,2224 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الاختبار التفاعلي للغة الإنجليزية | Interactive English Exam</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --secondary: #0ea5e9;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning: #f59e0b;
+    }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: linear-gradient(135deg, #eef2ff 0%, #f0f9ff 50%, #fdf4ff 100%);
+      min-height: 100vh;
+      user-select: none;
+    }
+    .en-font {
+      font-family: 'Fredoka', sans-serif;
+      direction: ltr;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Word Bank & Dropzones */
+    .word-chip {
+      cursor: grab;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .word-chip:hover {
+      transform: translateY(-2px);
+    }
+    .word-chip:active {
+      cursor: grabbing;
+    }
+    .word-chip.selected-chip {
+      transform: scale(1.06);
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.35);
+      background: #4f46e5 !important;
+      color: white !important;
+      border-color: #4338ca !important;
+    }
+    .drop-zone {
+      min-height: 40px;
+      transition: all 0.2s ease;
+    }
+    .drop-zone.drag-over {
+      background-color: #e0f2fe !important;
+      border-color: #0284c7 !important;
+      transform: scale(1.03);
+    }
+
+    /* Connection Dots for Arrow Matching */
+    .match-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 9999px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .match-dot:hover {
+      transform: scale(1.25);
+    }
+    .match-card-active {
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.35) !important;
+      border-color: #4f46e5 !important;
+      background-color: #eef2ff !important;
+    }
+
+    /* Confetti Canvas */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: #ffffff !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+    }
+  </style>
+</head>
+<body class="text-slate-800 pb-16">
+
+  <!-- Confetti Canvas for Celebration -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Top Header -->
+  <header class="bg-white/90 backdrop-blur-md border-b border-indigo-100 sticky top-0 z-40 shadow-sm no-print">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-indigo-200">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl md:text-2xl font-black text-indigo-950">الاختبار التفاعلي للغة الإنجليزية</h1>
+          <p class="text-xs md:text-sm text-slate-500 font-semibold">Read, Look & Match • Read, Write & Match • Order the Words to Make Sentences</p>
+        </div>
+      </div>
+
+      <!-- Student Info & Controls -->
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center bg-slate-100 rounded-xl px-3 py-1.5 border border-slate-200">
+          <span class="text-xs font-bold text-slate-500 ml-2">اسم الطالب/ـة:</span>
+          <input id="student-name" type="text" placeholder="اكتب اسمك هنا..." class="bg-transparent text-sm font-bold text-indigo-950 focus:outline-none w-36 md:w-44" />
+        </div>
+
+        <button id="sound-toggle" onclick="toggleSound()" class="p-2.5 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition font-bold text-sm flex items-center gap-1.5" title="تشغيل/كتم المؤثرات الصوتية">
+          <span id="sound-icon">🔊</span>
+          <span class="hidden sm:inline">الصوت</span>
+        </button>
+
+        <button onclick="finishExam()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-md shadow-emerald-200 transition flex items-center gap-2">
+          <span>إنهاء الاختبار وعرض النتيجة</span>
+          <span>🏆</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="max-w-7xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 no-print">
+
+    <!-- Questions Board Sidebar (لوحة الأسئلة) -->
+    <aside class="lg:col-span-3 space-y-4">
+      <div class="bg-white rounded-3xl p-4 shadow-lg shadow-indigo-100/60 border border-indigo-50 sticky top-20">
+        <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100">
+          <h2 class="font-extrabold text-base text-indigo-950 flex items-center gap-2">
+            <span>📋</span>
+            <span>لوحة الأسئلة (3 أسئلة)</span>
+          </h2>
+          <span id="overall-progress-badge" class="text-xs font-extrabold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">0 / 23</span>
+        </div>
+
+        <!-- Overall Progress Bar -->
+        <div class="mb-4">
+          <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
+            <span>نسبة الإنجاز الكلية</span>
+            <span id="overall-progress-pct">0%</span>
+          </div>
+          <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+            <div id="overall-progress-bar" class="h-full bg-gradient-to-r from-indigo-600 to-teal-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons for the 3 Questions -->
+        <div class="space-y-2.5" id="question-nav-list">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- View Mode & Actions -->
+        <div class="mt-4 pt-3 border-t border-slate-100 space-y-2">
+          <button onclick="checkCurrentQuestion()" class="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-sm transition flex items-center justify-center gap-1.5">
+            <span>✨</span>
+            <span>تحقق من إجابات هذا السؤال</span>
+          </button>
+          <button onclick="toggleShowAllQuestions()" id="view-mode-btn" class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition flex items-center justify-center gap-1.5">
+            <span>📑</span>
+            <span id="view-mode-text">عرض جميع الأسئلة معاً</span>
+          </button>
+          <button onclick="resetAllExam()" class="w-full py-1.5 px-3 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold text-xs transition flex items-center justify-center gap-1.5">
+            <span>🔄</span>
+            <span>إعادة تعيين الاختبار بالكامل</span>
+          </button>
+        </div>
+
+        <!-- Live Score Box (Shown after finishing) -->
+        <div id="sidebar-result-card" class="hidden mt-4 pt-3 border-t border-slate-100 bg-gradient-to-br from-indigo-50 to-teal-50 rounded-2xl p-3.5 border border-indigo-100 text-center">
+          <p class="text-xs font-bold text-indigo-600 mb-0.5">نتيجة الاختبار النهائية</p>
+          <div class="text-2xl font-black text-indigo-950 mb-0.5" id="sidebar-score-text">23 / 23</div>
+          <div class="text-xs font-extrabold text-emerald-600 mb-2.5" id="sidebar-pct-text">100% - ممتاز!</div>
+          <button onclick="openResultsModal()" class="w-full py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow transition mb-1.5">
+            📊 عرض التقرير والتغذية الراجعة
+          </button>
+          <button onclick="printExamResult()" class="w-full py-1.5 rounded-xl bg-white hover:bg-slate-50 text-indigo-700 border border-indigo-200 font-bold text-xs transition">
+            🖨️ طباعة النتيجة والشهادة
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Questions Content Area -->
+    <main class="lg:col-span-9 space-y-8">
+
+      <!-- ========================================================
+           QUESTION 1: READ, LOOK, AND MATCH BY ARROW (8 ITEMS)
+           ======================================================== -->
+      <section id="q-section-1" class="bg-white rounded-3xl shadow-xl shadow-indigo-100/50 border border-indigo-50 overflow-hidden">
+        <div class="bg-gradient-to-r from-teal-600 to-emerald-600 px-6 py-4 text-white flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-black text-lg">1</span>
+            <div>
+              <h2 class="text-lg md:text-xl font-black">السؤال الأول: وصل الكلمة بالصورة المناسبة عن طريق السهم</h2>
+              <p class="text-xs md:text-sm text-teal-100 font-semibold en-font">2 Read, look, and match. Then listen and say.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="clearQ1()" class="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition">
+              مسح الأسهم 🗑️
+            </button>
+            <span id="q1-badge" class="px-3 py-1.5 rounded-lg bg-white text-teal-700 font-black text-xs">0 / 8</span>
+          </div>
+        </div>
+
+        <div class="bg-teal-50/70 px-6 py-3 border-b border-teal-100 flex flex-wrap items-center justify-between gap-2 text-xs md:text-sm text-teal-950 font-semibold">
+          <div class="flex items-center gap-2">
+            <span>🏹</span>
+            <span><strong>طريقة الحل:</strong> اضغط على الكلمة في اليسار ثم اضغط على الصورة المناسبة في اليمين (أو اسحب السهم مباشرة من نقطة الكلمة إلى نقطة الصورة).</span>
+          </div>
+          <span class="text-teal-700 font-bold">🔊 اضغط على السماعة لسماع نطق الكلمة</span>
+        </div>
+
+        <div id="q1-feedback" class="hidden mx-6 mt-4 p-4 rounded-2xl border text-sm font-bold"></div>
+
+        <!-- Interactive Matching Board Q1 -->
+        <div class="p-4 md:p-8" dir="ltr">
+          <div class="flex items-center gap-2 mb-6">
+            <span class="text-pink-600 font-black text-xl en-font">2</span>
+            <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 text-xs font-bold en-font">🎧 W.5</span>
+            <h3 class="en-font text-lg md:text-xl font-black text-slate-900">Read, look, and match. Then listen and say.</h3>
+          </div>
+
+          <div id="q1-board" class="relative grid grid-cols-12 gap-4 md:gap-8 items-center">
+            <!-- SVG Overlay for Arrows -->
+            <svg id="q1-svg" class="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible"></svg>
+
+            <!-- Left Column: 8 Words -->
+            <div id="q1-words-col" class="col-span-5 space-y-3 z-10">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Middle Space for Arrows -->
+            <div class="col-span-2"></div>
+
+            <!-- Right Column: 8 Pictures (a - h) -->
+            <div id="q1-pics-col" class="col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-3 z-10">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+          <button onclick="checkQuestion(1)" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm shadow transition">
+            تحقق من السؤال الأول ✔️
+          </button>
+          <button onclick="goToQuestion(2)" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow transition flex items-center gap-2">
+            <span>السؤال التالي (أكمل الجملة ووصل بالصورة)</span>
+            <span>⬅️</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           QUESTION 2: READ AND WRITE + LOOK AND MATCH (10 POINTS)
+           ======================================================== -->
+      <section id="q-section-2" class="bg-white rounded-3xl shadow-xl shadow-indigo-100/50 border border-indigo-50 overflow-hidden hidden">
+        <div class="bg-gradient-to-r from-pink-600 to-rose-600 px-6 py-4 text-white flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-black text-lg">2</span>
+            <div>
+              <h2 class="text-lg md:text-xl font-black">السؤال الثاني: ضع الكلمة المناسبة من الصندوق ثم وصل الجملة بالصورة</h2>
+              <p class="text-xs md:text-sm text-pink-100 font-semibold en-font">5 Read and write. Then look and match.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="clearQ2()" class="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition">
+              مسح الإجابات والأسهم 🗑️
+            </button>
+            <span id="q2-badge" class="px-3 py-1.5 rounded-lg bg-white text-pink-700 font-black text-xs">0 / 10</span>
+          </div>
+        </div>
+
+        <div class="bg-pink-50/70 px-6 py-3 border-b border-pink-100 flex flex-wrap items-center justify-between gap-2 text-xs md:text-sm text-pink-950 font-semibold">
+          <div class="flex items-center gap-2">
+            <span>🧲</span>
+            <span><strong>طريقة الحل:</strong> (1) اسحب الكلمة من الصندوق أو اضغط عليها ثم اضغط على الفراغ في الجملة، (2) وصل المربع الأخضر بجانب كل جملة بالصورة المناسبة (a-e) عن طريق السهم.</span>
+          </div>
+          <span class="text-pink-700 font-bold">🔊 اضغط على السماعة لسماع الجملة</span>
+        </div>
+
+        <div id="q2-feedback" class="hidden mx-6 mt-4 p-4 rounded-2xl border text-sm font-bold"></div>
+
+        <div class="p-4 md:p-8" dir="ltr">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-pink-600 font-black text-xl en-font">5</span>
+            <h3 class="en-font text-lg md:text-xl font-black text-slate-900">Read and write. Then look and match.</h3>
+          </div>
+
+          <!-- Word Bank Box -->
+          <div class="mb-7 max-w-3xl mx-auto">
+            <div class="text-xs font-bold text-slate-500 mb-1.5 text-center" dir="rtl">صندوق الكلمات (اسحب الكلمة أو اضغط عليها لوضعها في الفراغ):</div>
+            <div id="q2-word-bank" class="p-3.5 rounded-2xl border-2 border-pink-400 bg-pink-50/40 flex flex-wrap items-center justify-center gap-3 shadow-sm">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Interactive Board for Sentences + Arrows + Pictures -->
+          <div id="q2-board" class="relative grid grid-cols-12 gap-4 items-center">
+            <!-- SVG Overlay for Arrows -->
+            <svg id="q2-svg" class="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible"></svg>
+
+            <!-- Left Column: 5 Sentences with Word Dropzones & Match Boxes -->
+            <div id="q2-sentences-col" class="col-span-7 space-y-5 z-10">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Middle Space for Arrows -->
+            <div class="col-span-1"></div>
+
+            <!-- Right Column: 5 Illustrated Scene Cards (a - e) -->
+            <div id="q2-pics-col" class="col-span-4 space-y-4 z-10">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <button onclick="goToQuestion(1)" class="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-sm transition">
+              ➡️ السؤال السابق
+            </button>
+            <button onclick="checkQuestion(2)" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm shadow transition">
+              تحقق من السؤال الثاني ✔️
+            </button>
+          </div>
+          <button onclick="goToQuestion(3)" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow transition flex items-center gap-2">
+            <span>السؤال التالي (رتب الكلمات)</span>
+            <span>⬅️</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           QUESTION 3: ORDER THE WORDS TO MAKE SENTENCES (5 ITEMS)
+           ======================================================== -->
+      <section id="q-section-3" class="bg-white rounded-3xl shadow-xl shadow-indigo-100/50 border border-indigo-50 overflow-hidden hidden">
+        <div class="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-4 text-white flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-black text-lg">3</span>
+            <div>
+              <h2 class="text-lg md:text-xl font-black">السؤال الثالث: رتب الكلمات لتكوين جمل صحيحة</h2>
+              <p class="text-xs md:text-sm text-indigo-100 font-semibold en-font">4 Order the words to make sentences.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="clearQ3()" class="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition">
+              إعادة الترتيب 🗑️
+            </button>
+            <span id="q3-badge" class="px-3 py-1.5 rounded-lg bg-white text-indigo-700 font-black text-xs">0 / 5</span>
+          </div>
+        </div>
+
+        <div class="bg-indigo-50/70 px-6 py-3 border-b border-indigo-100 flex flex-wrap items-center justify-between gap-2 text-xs md:text-sm text-indigo-950 font-semibold">
+          <div class="flex items-center gap-2">
+            <span>🧩</span>
+            <span><strong>طريقة الحل:</strong> اضغط على الكلمات بالترتيب الصحيح لتكوين الجملة على السطر (ويمكنك الضغط على أي كلمة في السطر لإرجاعها).</span>
+          </div>
+          <span class="text-indigo-700 font-bold">🔊 اضغط على السماعة لسماع الجملة</span>
+        </div>
+
+        <div id="q3-feedback" class="hidden mx-6 mt-4 p-4 rounded-2xl border text-sm font-bold"></div>
+
+        <div class="p-6 md:p-8" dir="ltr">
+          <div class="flex items-center gap-2 mb-6">
+            <span class="text-pink-600 font-black text-xl en-font">4</span>
+            <h3 class="en-font text-lg md:text-xl font-black text-slate-900">Order the words to make sentences.</h3>
+          </div>
+
+          <div id="q3-list" class="space-y-6 max-w-4xl mx-auto">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <button onclick="goToQuestion(2)" class="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-sm transition">
+              ➡️ السؤال السابق
+            </button>
+            <button onclick="checkQuestion(3)" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm shadow transition">
+              تحقق من السؤال الثالث ✔️
+            </button>
+          </div>
+          <button onclick="finishExam()" class="px-7 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-base shadow-lg shadow-emerald-200 transition flex items-center gap-2">
+            <span>إنهاء الاختبار واعتماد النتيجة النهائية</span>
+            <span>🎓</span>
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==========================================
+       RESULTS, MOTIVATION & FEEDBACK MODAL
+       ========================================== -->
+  <div id="results-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto no-print">
+    <div class="bg-white rounded-3xl max-w-5xl w-full shadow-2xl border border-indigo-100 overflow-hidden my-8 max-h-[92vh] flex flex-col">
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-indigo-600 via-teal-600 to-emerald-500 p-6 text-white text-center relative">
+        <button onclick="closeResultsModal()" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white font-bold text-lg transition">
+          ✕
+        </button>
+        <div id="modal-trophy" class="text-6xl mb-2 animate-bounce">🏆</div>
+        <h2 id="modal-title" class="text-2xl md:text-3xl font-black mb-1">أحسنت! بارك الله في جهودك</h2>
+        <p class="text-indigo-100 font-semibold text-sm md:text-base">تقرير النتيجة النهائية والتغذية الراجعة التفصيلية للاختبار</p>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-6 flex-1">
+        <!-- Score Summary Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+          <div class="bg-indigo-50 rounded-2xl p-4 border border-indigo-100">
+            <p class="text-xs font-bold text-indigo-500 mb-1">الدرجة الكلية</p>
+            <p id="modal-total-score" class="text-2xl md:text-3xl font-black text-indigo-950">23 / 23</p>
+          </div>
+          <div class="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
+            <p class="text-xs font-bold text-emerald-600 mb-1">النسبة المئوية</p>
+            <p id="modal-percentage" class="text-2xl md:text-3xl font-black text-emerald-700">100%</p>
+          </div>
+          <div class="bg-amber-50 rounded-2xl p-4 border border-amber-100">
+            <p class="text-xs font-bold text-amber-600 mb-1">التقدير والنجوم</p>
+            <p id="modal-stars" class="text-xl md:text-2xl font-black text-amber-500">⭐⭐⭐⭐⭐</p>
+          </div>
+          <div class="bg-sky-50 rounded-2xl p-4 border border-sky-100">
+            <p class="text-xs font-bold text-sky-600 mb-1">اسم الطالب/ـة</p>
+            <p id="modal-student-name" class="text-base md:text-lg font-black text-sky-950 truncate">بطل المستقبل</p>
+          </div>
+        </div>
+
+        <!-- Motivational Box -->
+        <div class="p-5 rounded-2xl bg-gradient-to-r from-amber-50 via-yellow-50 to-emerald-50 border-2 border-amber-200 flex items-center gap-4">
+          <div class="text-4xl shrink-0">🌟</div>
+          <div>
+            <h3 class="font-black text-amber-950 text-base md:text-lg mb-1" id="modal-motivation-heading">رسالة تحفيزية</h3>
+            <p class="text-slate-700 font-semibold text-sm leading-relaxed" id="modal-motivation-text"></p>
+          </div>
+        </div>
+
+        <!-- Breakdown by Question -->
+        <div>
+          <h3 class="font-black text-indigo-950 text-lg mb-3 flex items-center gap-2">
+            <span>📊</span>
+            <span>تفصيل الدرجات حسب الأسئلة الثلاثة:</span>
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="modal-questions-breakdown">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Detailed Feedback Table -->
+        <div>
+          <h3 class="font-black text-indigo-950 text-lg mb-3 flex items-center gap-2">
+            <span>📝</span>
+            <span>التغذية الراجعة ومراجعة الإجابات التفصيلية:</span>
+          </h3>
+          <div id="modal-detailed-feedback" class="space-y-4">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="printExamResult()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md transition flex items-center gap-2">
+            <span>🖨️</span>
+            <span>طباعة النتيجة والتقرير</span>
+          </button>
+          <button onclick="reviewOnBoard()" class="px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md transition flex items-center gap-2">
+            <span>🔍</span>
+            <span>مراجعة الإجابات على لوحة الاختبار</span>
+          </button>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="resetAllExam(); closeResultsModal();" class="px-4 py-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-sm transition">
+            🔄 إعادة المحاولة
+          </button>
+          <button onclick="closeResultsModal()" class="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-sm transition">
+            إغلاق
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       PRINTABLE REPORT & CERTIFICATE VIEW
+       ========================================== -->
+  <div id="printable-report" class="hidden print-only p-6 max-w-5xl mx-auto">
+    <div class="border-4 border-indigo-700 rounded-3xl p-6 space-y-5">
+      <div class="flex items-center justify-between border-b-2 border-indigo-100 pb-4">
+        <div>
+          <h1 class="text-2xl font-black text-indigo-950">تقرير وشهادة نتيجة الاختبار التفاعلي للغة الإنجليزية</h1>
+          <p class="text-sm font-bold text-slate-600">Interactive English Assessment Report & Feedback</p>
+        </div>
+        <div class="text-left text-xs font-bold text-slate-600">
+          <div id="print-date"></div>
+          <div class="text-indigo-700 font-black text-sm mt-1">درجة الاختبار النهائية</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-4 gap-3 text-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
+        <div>
+          <div class="text-xs font-bold text-slate-500">اسم الطالب/ـة</div>
+          <div id="print-student-name" class="text-base font-black text-slate-900 mt-1">غير محدد</div>
+        </div>
+        <div>
+          <div class="text-xs font-bold text-slate-500">المجموع الكلي</div>
+          <div id="print-total-score" class="text-xl font-black text-indigo-700 mt-1">23 / 23</div>
+        </div>
+        <div>
+          <div class="text-xs font-bold text-slate-500">النسبة المئوية</div>
+          <div id="print-percentage" class="text-xl font-black text-emerald-700 mt-1">100%</div>
+        </div>
+        <div>
+          <div class="text-xs font-bold text-slate-500">التقدير العام</div>
+          <div id="print-grade" class="text-base font-black text-amber-600 mt-1">ممتاز ⭐⭐⭐⭐⭐</div>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-center">
+        <p id="print-motivation" class="text-sm font-bold text-amber-950"></p>
+      </div>
+
+      <div id="print-questions-summary" class="grid grid-cols-3 gap-3 text-center"></div>
+
+      <div id="print-detailed-tables" class="space-y-4 text-xs"></div>
+
+      <div class="pt-4 border-t border-slate-200 flex justify-between text-xs font-bold text-slate-500">
+        <span>تم استخراج التقرير آلياً من نظام الاختبار التفاعلي للغة الإنجليزية</span>
+        <span>مع تمنياتنا بدوام التفوق والنجاح 🌟</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       JAVASCRIPT LOGIC & DATA
+       ========================================== -->
+  <script>
+    /**************************************************************
+     * 1. CUSTOM SVG ILLUSTRATIONS MATCHING THE WORKSHEETS
+     **************************************************************/
+    const Q1_SVGS = {
+      // a: Two shirts (one blue/white striped, one solid blue) -> different
+      a: `
+        <svg viewBox="0 0 120 80" class="w-20 h-16 shrink-0">
+          <!-- Striped shirt -->
+          <g transform="translate(4, 6)">
+            <path d="M14 8 L24 4 L38 4 L48 8 L54 22 L44 26 L42 16 L42 64 L20 64 L20 16 L18 26 L8 22 Z" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+            <line x1="20" y1="18" x2="42" y2="18" stroke="#2563eb" stroke-width="4"/>
+            <line x1="20" y1="28" x2="42" y2="28" stroke="#2563eb" stroke-width="4"/>
+            <line x1="20" y1="38" x2="42" y2="38" stroke="#2563eb" stroke-width="4"/>
+            <line x1="20" y1="48" x2="42" y2="48" stroke="#2563eb" stroke-width="4"/>
+            <line x1="20" y1="58" x2="42" y2="58" stroke="#2563eb" stroke-width="4"/>
+          </g>
+          <!-- Solid blue shirt -->
+          <g transform="translate(56, 6)">
+            <path d="M14 8 L24 4 L38 4 L48 8 L54 22 L44 26 L42 16 L42 64 L20 64 L20 16 L18 26 L8 22 Z" fill="#2563eb" stroke="#1e3a8a" stroke-width="2"/>
+          </g>
+        </svg>
+      `,
+      // b: Boy scratching head looking surprised -> surprised
+      b: `
+        <svg viewBox="0 0 90 80" class="w-16 h-16 shrink-0">
+          <path d="M26 74 Q45 54 64 74" fill="#2563eb" stroke="#1e3a8a" stroke-width="2"/>
+          <circle cx="45" cy="36" r="18" fill="#8d5524" stroke="#1e293b" stroke-width="2"/>
+          <path d="M27 32 Q32 14 48 16 Q62 18 63 32 Q50 24 27 32 Z" fill="#1e293b"/>
+          <circle cx="40" cy="34" r="3" fill="#ffffff"/>
+          <circle cx="40" cy="34" r="1.5" fill="#000000"/>
+          <circle cx="52" cy="34" r="3" fill="#ffffff"/>
+          <circle cx="52" cy="34" r="1.5" fill="#000000"/>
+          <ellipse cx="46" cy="45" rx="3.5" ry="4.5" fill="#450a0a"/>
+          <path d="M28 58 Q18 42 29 28" fill="none" stroke="#8d5524" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+      `,
+      // c: Boy jumping happily -> exciting
+      c: `
+        <svg viewBox="0 0 90 85" class="w-16 h-16 shrink-0">
+          <circle cx="45" cy="22" r="11" fill="#b45309" stroke="#1e293b" stroke-width="1.8"/>
+          <path d="M34 18 Q45 8 56 18 Z" fill="#1e293b"/>
+          <circle cx="41" cy="21" r="1.5" fill="#fff"/>
+          <circle cx="49" cy="21" r="1.5" fill="#fff"/>
+          <path d="M41 26 Q45 30 49 26" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M24 26 L38 34 L52 34 L66 24" fill="none" stroke="#b45309" stroke-width="4" stroke-linecap="round"/>
+          <rect x="37" y="32" width="16" height="20" rx="4" fill="#38bdf8" stroke="#0284c7" stroke-width="1.5"/>
+          <rect x="37" y="50" width="16" height="10" rx="2" fill="#78350f"/>
+          <path d="M40 60 L34 74 M50 60 L56 70" stroke="#b45309" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+      `,
+      // d: Yellow thumbs down -> terrible
+      d: `
+        <svg viewBox="0 0 90 80" class="w-16 h-16 shrink-0">
+          <path d="M28 16 H56 Q64 16 64 24 V44 Q64 50 56 50 H46 L50 66 Q50 72 44 72 Q39 72 38 66 L34 50 H28 Q22 50 22 44 V22 Q22 16 28 16 Z" fill="#facc15" stroke="#ca8a04" stroke-width="2.5"/>
+          <line x1="56" y1="24" x2="64" y2="24" stroke="#ca8a04" stroke-width="2"/>
+          <line x1="56" y1="32" x2="64" y2="32" stroke="#ca8a04" stroke-width="2"/>
+          <line x1="56" y1="40" x2="64" y2="40" stroke="#ca8a04" stroke-width="2"/>
+        </svg>
+      `,
+      // e: Girl with lightbulb above head -> brilliant
+      e: `
+        <svg viewBox="0 0 90 85" class="w-16 h-16 shrink-0">
+          <!-- Lightbulb -->
+          <circle cx="45" cy="18" r="9" fill="#fef08a" stroke="#eab308" stroke-width="2"/>
+          <rect x="42" y="26" width="6" height="4" fill="#94a3b8"/>
+          <line x1="45" y1="3" x2="45" y2="6" stroke="#eab308" stroke-width="2" stroke-linecap="round"/>
+          <line x1="30" y1="12" x2="33" y2="14" stroke="#eab308" stroke-width="2" stroke-linecap="round"/>
+          <line x1="60" y1="12" x2="57" y2="14" stroke="#eab308" stroke-width="2" stroke-linecap="round"/>
+          <!-- Girl -->
+          <path d="M28 66 Q30 42 45 42 Q60 42 62 66" fill="#78350f"/>
+          <circle cx="45" cy="56" r="13" fill="#fde68a" stroke="#1e293b" stroke-width="1.8"/>
+          <circle cx="41" cy="53" r="1.8" fill="#1e293b"/>
+          <circle cx="49" cy="53" r="1.8" fill="#1e293b"/>
+          <path d="M41 61 Q45 64 49 61" fill="none" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M32 78 Q45 68 58 78" fill="#2563eb"/>
+        </svg>
+      `,
+      // f: Kid making a silly/naughty face -> naughty
+      f: `
+        <svg viewBox="0 0 90 80" class="w-16 h-16 shrink-0">
+          <path d="M28 74 L32 52 L58 52 L62 74 Z" fill="#2dd4bf" stroke="#0d9488" stroke-width="2"/>
+          <line x1="31" y1="60" x2="59" y2="60" stroke="#0f766e" stroke-width="3"/>
+          <line x1="30" y1="68" x2="60" y2="68" stroke="#0f766e" stroke-width="3"/>
+          <circle cx="45" cy="36" r="15" fill="#fed7aa" stroke="#1e293b" stroke-width="1.8"/>
+          <path d="M26 28 Q45 16 64 28" fill="none" stroke="#78350f" stroke-width="5" stroke-linecap="round"/>
+          <path d="M38 33 L42 35 L38 37 M52 33 L48 35 L52 37" fill="none" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round"/>
+          <ellipse cx="45" cy="43" rx="6" ry="3" fill="#f43f5e"/>
+          <path d="M26 48 L37 42 M64 48 L53 42" stroke="#fed7aa" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+      `,
+      // g: Red warning triangle -> dangerous
+      g: `
+        <svg viewBox="0 0 90 80" class="w-16 h-16 shrink-0">
+          <polygon points="45,10 80,68 10,68" fill="#ffffff" stroke="#ef4444" stroke-width="6" stroke-linejoin="round"/>
+          <rect x="42" y="28" width="6" height="20" rx="3" fill="#0f172a"/>
+          <circle cx="45" cy="57" r="3.5" fill="#0f172a"/>
+        </svg>
+      `,
+      // h: Scared girl with dark curly hair -> afraid
+      h: `
+        <svg viewBox="0 0 90 80" class="w-16 h-16 shrink-0">
+          <path d="M22 66 Q24 18 45 18 Q66 18 68 66" fill="#1e293b"/>
+          <circle cx="45" cy="42" r="15" fill="#a16207" stroke="#1e293b" stroke-width="1.8"/>
+          <circle cx="39" cy="40" r="2.2" fill="#1e293b"/>
+          <circle cx="51" cy="40" r="2.2" fill="#1e293b"/>
+          <path d="M39 50 Q45 46 51 50" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/>
+          <path d="M34 74 L38 58 L52 58 L56 74 Z" fill="#ec4899"/>
+        </svg>
+      `
+    };
+
+    const Q2_SVGS = {
+      // a: Boy in water with shark fin nearby -> afraid
+      a: `
+        <svg viewBox="0 0 180 110" class="w-full h-24 rounded-xl">
+          <rect width="180" height="110" rx="12" fill="#bae6fd"/>
+          <path d="M0 68 Q30 58 60 68 T120 68 T180 68 L180 110 L0 110 Z" fill="#0284c7"/>
+          <path d="M0 82 Q30 72 60 82 T120 82 T180 82 L180 110 L0 110 Z" fill="#0ea5e9"/>
+          <!-- Shark fin -->
+          <path d="M130 78 Q145 32 162 28 Q156 56 164 78 Z" fill="#94a3b8" stroke="#475569" stroke-width="2"/>
+          <!-- Scared swimmer boy -->
+          <path d="M72 68 Q98 52 122 56" fill="none" stroke="#c27838" stroke-width="10" stroke-linecap="round"/>
+          <circle cx="66" cy="46" r="22" fill="#c27838" stroke="#1e293b" stroke-width="2"/>
+          <path d="M44 42 Q50 18 76 22 Q90 26 86 44 Q68 30 44 42 Z" fill="#1e293b"/>
+          <circle cx="62" cy="46" r="4" fill="#ffffff"/>
+          <circle cx="63" cy="46" r="2" fill="#000000"/>
+          <circle cx="76" cy="44" r="4" fill="#ffffff"/>
+          <circle cx="77" cy="44" r="2" fill="#000000"/>
+          <ellipse cx="72" cy="57" rx="5" ry="3.5" fill="#ffffff" stroke="#1e293b" stroke-width="1.5"/>
+        </svg>
+      `,
+      // b: Girl surrounded by 10 colorful presents -> surprised
+      b: `
+        <svg viewBox="0 0 180 110" class="w-full h-24 rounded-xl">
+          <rect width="180" height="110" rx="12" fill="#fef9c3"/>
+          <rect y="84" width="180" height="26" fill="#d6d3d1"/>
+          <!-- Presents background -->
+          <rect x="18" y="54" width="26" height="32" fill="#f97316" stroke="#c2410c" stroke-width="1.5"/>
+          <line x1="31" y1="54" x2="31" y2="86" stroke="#fde047" stroke-width="4"/>
+          <rect x="46" y="42" width="28" height="44" fill="#ec4899" stroke="#be185d" stroke-width="1.5"/>
+          <line x1="60" y1="42" x2="60" y2="86" stroke="#a855f7" stroke-width="4"/>
+          <rect x="112" y="46" width="28" height="40" fill="#a855f7" stroke="#7e22ce" stroke-width="1.5"/>
+          <line x1="126" y1="46" x2="126" y2="86" stroke="#fde047" stroke-width="4"/>
+          <rect x="142" y="58" width="24" height="28" fill="#14b8a6" stroke="#0f766e" stroke-width="1.5"/>
+          <!-- Girl -->
+          <circle cx="90" cy="40" r="16" fill="#fed7aa" stroke="#1e293b" stroke-width="1.8"/>
+          <path d="M72 44 Q72 20 90 20 Q108 20 108 44" fill="#b45309"/>
+          <circle cx="85" cy="39" r="2" fill="#1e293b"/>
+          <circle cx="95" cy="39" r="2" fill="#1e293b"/>
+          <path d="M85 46 Q90 51 95 46" fill="#ffffff" stroke="#1e293b" stroke-width="1.5"/>
+          <path d="M76 88 L82 56 L98 56 L104 88 Z" fill="#10b981" stroke="#047857" stroke-width="1.5"/>
+        </svg>
+      `,
+      // c: Boy walking with suitcase on vacation -> exciting
+      c: `
+        <svg viewBox="0 0 180 110" class="w-full h-24 rounded-xl">
+          <rect width="180" height="110" rx="12" fill="#f8fafc"/>
+          <rect y="82" width="180" height="28" fill="#bae6fd"/>
+          <!-- Suitcase -->
+          <line x1="108" y1="62" x2="126" y2="74" stroke="#334155" stroke-width="3"/>
+          <rect x="120" y="68" width="26" height="32" rx="4" fill="#7e22ce" stroke="#581c87" stroke-width="2"/>
+          <!-- Boy -->
+          <circle cx="88" cy="32" r="13" fill="#b45309" stroke="#1e293b" stroke-width="1.8"/>
+          <path d="M72 24 Q88 14 102 24 Z" fill="#dc2626"/>
+          <rect x="78" y="45" width="20" height="26" rx="4" fill="#ea580c"/>
+          <path d="M82 71 L70 96 M94 71 L106 96" stroke="#65a30d" stroke-width="6" stroke-linecap="round"/>
+          <path d="M78 52 L60 48 M98 52 L112 62" stroke="#b45309" stroke-width="4.5" stroke-linecap="round"/>
+        </svg>
+      `,
+      // d: Little brother making a mess in closet -> naughty
+      d: `
+        <svg viewBox="0 0 180 110" class="w-full h-24 rounded-xl">
+          <rect width="180" height="110" rx="12" fill="#fed7aa"/>
+          <rect x="0" y="0" width="42" height="96" fill="#b45309"/>
+          <circle cx="34" cy="52" r="3" fill="#fde047"/>
+          <rect x="42" y="0" width="100" height="90" fill="#581c87" opacity="0.65"/>
+          <!-- Little brother sitting -->
+          <circle cx="105" cy="36" r="15" fill="#fdba74" stroke="#1e293b" stroke-width="1.8"/>
+          <path d="M90 28 Q105 18 120 28" fill="none" stroke="#facc15" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="100" cy="35" r="2" fill="#1e293b"/>
+          <circle cx="110" cy="35" r="2" fill="#1e293b"/>
+          <path d="M101 43 Q105 46 110 42" fill="none" stroke="#1e293b" stroke-width="1.8"/>
+          <rect x="92" y="51" width="26" height="26" rx="4" fill="#f97316"/>
+          <path d="M94 77 L72 90 M116 77 L124 94" stroke="#38bdf8" stroke-width="8" stroke-linecap="round"/>
+          <!-- Spilled cup -->
+          <rect x="132" y="78" width="12" height="16" rx="2" fill="#bae6fd" stroke="#0284c7" stroke-width="1.5"/>
+        </svg>
+      `,
+      // e: Girl holding cheese making disgusted face -> terrible
+      e: `
+        <svg viewBox="0 0 180 110" class="w-full h-24 rounded-xl">
+          <rect width="180" height="110" rx="12" fill="#5eead4"/>
+          <!-- Girl -->
+          <path d="M72 60 Q72 18 104 18 Q134 18 134 60" fill="#ea580c"/>
+          <circle cx="104" cy="48" r="19" fill="#fdba74" stroke="#1e293b" stroke-width="1.8"/>
+          <!-- Squinting eye & open eye -->
+          <path d="M92 44 L99 47 L92 50" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="112" cy="46" r="2.5" fill="#1e293b"/>
+          <!-- Tongue out disgusted mouth -->
+          <path d="M98 57 Q104 54 110 57" fill="none" stroke="#1e293b" stroke-width="2"/>
+          <ellipse cx="105" cy="61" rx="4" ry="5" fill="#f43f5e"/>
+          <path d="M84 108 L90 68 L118 68 L124 108 Z" fill="#a855f7"/>
+          <!-- Cheese wedge in hand -->
+          <polygon points="42,78 72,66 68,92" fill="#fef08a" stroke="#eab308" stroke-width="2"/>
+          <circle cx="56" cy="78" r="2.5" fill="#eab308"/>
+          <circle cx="64" cy="84" r="2" fill="#eab308"/>
+        </svg>
+      `
+    };
+
+    /**************************************************************
+     * 2. EXAM DATA STRUCTURE (ALL 3 QUESTIONS - 23 POINTS TOTAL)
+     *    NOTE: All pre-filled example answers are REMOVED!
+     **************************************************************/
+    const EXAM_DATA = {
+      // Question 1: Read, look, and match (8 items)
+      q1: {
+        words: [
+          { id: 1, word: 'afraid',    correctPic: 'h', color: '#ef4444', ar: 'خائف' },
+          { id: 2, word: 'brilliant', correctPic: 'e', color: '#f59e0b', ar: 'ذكي / رائع' },
+          { id: 3, word: 'dangerous', correctPic: 'g', color: '#10b981', ar: 'خطير' },
+          { id: 4, word: 'different', correctPic: 'a', color: '#3b82f6', ar: 'مختلف' },
+          { id: 5, word: 'exciting',  correctPic: 'c', color: '#8b5cf6', ar: 'مثير / ممتع' },
+          { id: 6, word: 'naughty',   correctPic: 'f', color: '#ec4899', ar: 'شقي / مشاغب' },
+          { id: 7, word: 'terrible',  correctPic: 'd', color: '#06b6d4', ar: 'سيئ جداً' },
+          { id: 8, word: 'surprised', correctPic: 'b', color: '#6366f1', ar: 'متفاجئ / مندهش' }
+        ],
+        pictures: [
+          { letter: 'a', label: 'قميصان مختلفان' },
+          { letter: 'b', label: 'ولد متفاجئ' },
+          { letter: 'c', label: 'ولد يقفز بحماس' },
+          { letter: 'd', label: 'إبهام للأسفل' },
+          { letter: 'e', label: 'فكرة ذكية (مصباح)' },
+          { letter: 'f', label: 'طفل مشاغب' },
+          { letter: 'g', label: 'علامة خطر (!)' },
+          { letter: 'h', label: 'فتاة خائفة' }
+        ]
+      },
+
+      // Question 2: Read and write. Then look and match (5 sentences = 5 words + 5 picture matches = 10 points)
+      q2: {
+        wordBank: ['exciting', 'afraid', 'naughty', 'terrible', 'surprised'],
+        items: [
+          {
+            id: 1,
+            prefix: 'My little brother is very',
+            firstLetter: 'n',
+            suffix: '.',
+            correctWord: 'naughty',
+            correctPic: 'd',
+            color: '#ec4899',
+            ar: 'أخي الصغير مشاغب جداً.'
+          },
+          {
+            id: 2,
+            prefix: "I don't like the taste of cheese. It's",
+            firstLetter: 't',
+            suffix: '.',
+            correctWord: 'terrible',
+            correctPic: 'e',
+            color: '#f59e0b',
+            ar: 'لا أحب طعم الجبن. إنه سيئ جداً.'
+          },
+          {
+            id: 3,
+            prefix: 'I got ten presents from my friends! I was happy and',
+            firstLetter: 's',
+            suffix: '.',
+            correctWord: 'surprised',
+            correctPic: 'b',
+            color: '#8b5cf6',
+            ar: 'حصلت على عشر هدايا من أصدقائي! كنت سعيداً ومتفاجئاً.'
+          },
+          {
+            id: 4,
+            prefix: 'There was a shark near me when I was in the water. I was',
+            firstLetter: 'a',
+            suffix: '.',
+            correctWord: 'afraid',
+            correctPic: 'a',
+            color: '#ef4444',
+            ar: 'كان هناك سمكة قرش بالقرب مني في الماء. كنت خائفاً.'
+          },
+          {
+            id: 5,
+            prefix: "When I go on vacation, I think it's",
+            firstLetter: 'e',
+            suffix: '.',
+            correctWord: 'exciting',
+            correctPic: 'c',
+            color: '#0ea5e9',
+            ar: 'عندما أذهب في عطلة، أعتقد أنها ممتعة ومثيرة.'
+          }
+        ],
+        pictures: [
+          { letter: 'a', label: 'ولد خائف من سمكة القرش' },
+          { letter: 'b', label: 'فتاة متفاجئة بالهدايا' },
+          { letter: 'c', label: 'ولد مسافر في عطلة' },
+          { letter: 'd', label: 'أخ صغير مشاغب' },
+          { letter: 'e', label: 'فتاة تتذوق الجبن' }
+        ]
+      },
+
+      // Question 3: Order the words to make sentences (5 items - ALL start empty)
+      q3: [
+        {
+          id: 1,
+          prompt: 'makes / My dad / dinner / often / .',
+          chunks: ['makes', 'My dad', 'dinner', 'often', '.'],
+          correct: 'My dad often makes dinner.',
+          ar: 'أبي غالباً يعد العشاء.'
+        },
+        {
+          id: 2,
+          prompt: 'at / school / We / sometimes / celebrations / have / .',
+          chunks: ['at', 'school', 'We', 'sometimes', 'celebrations', 'have', '.'],
+          correct: 'We sometimes have celebrations at school.',
+          ar: 'نحن أحياناً نقيم احتفالات في المدرسة.'
+        },
+        {
+          id: 3,
+          prompt: 'does / his / in / the / Adel / park / homework / never / .',
+          chunks: ['does', 'his', 'in', 'the', 'Adel', 'park', 'homework', 'never', '.'],
+          correct: 'Adel never does his homework in the park.',
+          ar: 'عادل أبداً لا يؤدي واجبه المنزلي في الحديقة.'
+        },
+        {
+          id: 4,
+          prompt: 'I / mornings / always / have / on / Tuesday / class / art / .',
+          chunks: ['I', 'mornings', 'always', 'have', 'on', 'Tuesday', 'class', 'art', '.'],
+          correct: 'I always have art class on Tuesday mornings.',
+          ar: 'أنا دائماً لدي حصة فنية في صباح أيام الثلاثاء.'
+        },
+        {
+          id: 5,
+          prompt: 'My / goes / to / the / best friend / on / Thursdays / often / school / club / .',
+          chunks: ['My', 'goes', 'to', 'the', 'best friend', 'on', 'Thursdays', 'often', 'school', 'club', '.'],
+          correct: 'My best friend often goes to the school club on Thursdays.',
+          ar: 'صديقي المفضل غالباً يذهب إلى نادي المدرسة أيام الخميس.'
+        }
+      ]
+    };
+
+    /**************************************************************
+     * 3. STATE MANAGEMENT
+     **************************************************************/
+    let currentQuestion = 1;
+    let showAllMode = false;
+    let soundEnabled = true;
+    let examFinished = false;
+
+    const userState = {
+      q1: { 1: '', 2: '', 3: '', 4: '', 5: '', 6: '', 7: '', 8: '' }, // wordId -> picLetter
+      q2_words: { 1: '', 2: '', 3: '', 4: '', 5: '' },                // itemId -> word
+      q2_pics:  { 1: '', 2: '', 3: '', 4: '', 5: '' },                // itemId -> picLetter
+      q3: { 1: [], 2: [], 3: [], 4: [], 5: [] },                      // itemId -> array of chunk indices
+      checked: { 1: false, 2: false, 3: false }
+    };
+
+    // Interactive selection states
+    let activeQ1WordId = null;
+    let activeQ2WordChip = null;
+    let activeQ2SentenceMatchId = null;
+
+    // Dragging arrow state
+    let dragArrowState = null; // { qNum: 1|2, sourceId: number, startX: number, startY: number }
+
+    /**************************************************************
+     * 4. SOUND EFFECTS & SPEECH SYNTHESIS
+     **************************************************************/
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function playTone(type) {
+      if (!soundEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'click') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(520, now);
+          osc.frequency.exponentialRampToValueAtTime(680, now + 0.08);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (type === 'connect') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.exponentialRampToValueAtTime(760, now + 0.14);
+          gain.gain.setValueAtTime(0.16, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.14);
+          osc.start(now);
+          osc.stop(now + 0.14);
+        } else if (type === 'correct') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.1);
+          osc.frequency.setValueAtTime(783.99, now + 0.2);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.38);
+          osc.start(now);
+          osc.stop(now + 0.38);
+        } else if (type === 'wrong') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(240, now);
+          osc.frequency.linearRampToValueAtTime(170, now + 0.25);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'fanfare') {
+          const notes = [523.25, 659.25, 783.99, 1046.5];
+          notes.forEach((freq, idx) => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.connect(g);
+            g.connect(audioCtx.destination);
+            o.type = 'triangle';
+            o.frequency.setValueAtTime(freq, now + idx * 0.12);
+            g.gain.setValueAtTime(0.18, now + idx * 0.12);
+            g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.12 + 0.3);
+            o.start(now + idx * 0.12);
+            o.stop(now + idx * 0.12 + 0.3);
+          });
+        }
+      } catch (e) {}
+    }
+
+    function speakText(text) {
+      if (!soundEnabled || !('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(String(text));
+      utter.lang = 'en-US';
+      utter.rate = 0.88;
+      window.speechSynthesis.speak(utter);
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('sound-icon').textContent = soundEnabled ? '🔊' : '🔇';
+    }
+
+    function normalizeSentence(str) {
+      return String(str || '')
+        .trim()
+        .replace(/[’‘]/g, "'")
+        .replace(/\s+/g, ' ')
+        .replace(/\s+\./g, '.')
+        .replace(/\.+$/, '')
+        .toLowerCase();
+    }
+
+    /**************************************************************
+     * 5. INITIALIZATION & RESIZE LISTENERS
+     **************************************************************/
+    window.addEventListener('DOMContentLoaded', () => {
+      renderQuestion1();
+      renderQuestion2();
+      renderQuestion3();
+      updateDashboard();
+
+      window.addEventListener('resize', () => {
+        drawQ1Arrows();
+        drawQ2Arrows();
+      });
+    });
+
+    /**************************************************************
+     * 6. QUESTION 1: READ, LOOK, AND MATCH BY ARROW (8 ITEMS)
+     **************************************************************/
+    function renderQuestion1() {
+      const wordsCol = document.getElementById('q1-words-col');
+      const picsCol = document.getElementById('q1-pics-col');
+
+      wordsCol.innerHTML = EXAM_DATA.q1.words.map(item => {
+        const matchedLetter = userState.q1[item.id] || '';
+        const isSelected = activeQ1WordId === item.id;
+        const isCorrect = matchedLetter === item.correctPic;
+
+        let cardClass = 'border-slate-200 bg-white hover:border-teal-400';
+        let letterBadgeClass = 'border-slate-300 bg-slate-50 text-indigo-700';
+        let fbIcon = '';
+
+        if (isSelected) {
+          cardClass = 'match-card-active';
+        } else if (userState.checked[1]) {
+          if (isCorrect) {
+            cardClass = 'border-emerald-500 bg-emerald-50/50';
+            letterBadgeClass = 'border-emerald-600 bg-emerald-100 text-emerald-900';
+            fbIcon = `<span class="text-xs font-bold text-emerald-700" dir="rtl">✅</span>`;
+          } else {
+            cardClass = 'border-rose-500 bg-rose-50/50';
+            letterBadgeClass = 'border-rose-500 bg-rose-100 text-rose-900';
+            fbIcon = `<span class="text-xs font-bold text-rose-700" dir="rtl">❌ (${item.correctPic})</span>`;
+          }
+        } else if (matchedLetter) {
+          cardClass = 'border-indigo-300 bg-indigo-50/30';
+          letterBadgeClass = 'border-indigo-500 bg-indigo-100 text-indigo-900';
+        }
+
+        return `
+          <div id="q1-word-card-${item.id}"
+               onclick="onQ1WordSelect(${item.id})"
+               class="p-2.5 md:p-3 rounded-2xl border-2 transition cursor-pointer flex items-center justify-between gap-2 shadow-sm ${cardClass}">
+            <div class="flex items-center gap-2 en-font">
+              <button type="button"
+                      onclick="event.stopPropagation(); speakText('${item.word}')"
+                      class="w-7 h-7 rounded-full bg-teal-100 hover:bg-teal-200 text-teal-800 flex items-center justify-center text-xs shrink-0"
+                      title="استمع للنطق">🔊</button>
+              <span class="text-teal-700 font-black text-base md:text-lg">${item.id}</span>
+              <span class="font-bold text-slate-900 text-base md:text-lg">${item.word}</span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              ${fbIcon}
+              <span class="en-font inline-flex items-center justify-center w-8 h-7 rounded-lg border-b-2 font-black text-base ${letterBadgeClass}">
+                ${matchedLetter || ''}
+              </span>
+              <div id="q1-word-dot-${item.id}"
+                   onmousedown="startArrowDrag(event, 1, ${item.id})"
+                   ontouchstart="startArrowDrag(event, 1, ${item.id})"
+                   style="background-color: ${matchedLetter ? item.color : '#cbd5e1'}"
+                   class="match-dot border-2 border-white shadow-md shrink-0"
+                   title="اسحب السهم أو اضغط للتوصيل"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      picsCol.innerHTML = EXAM_DATA.q1.pictures.map(pic => {
+        // Find if any word is matched to this pic
+        const matchedWordObj = EXAM_DATA.q1.words.find(w => userState.q1[w.id] === pic.letter);
+        const dotColor = matchedWordObj ? matchedWordObj.color : '#cbd5e1';
+
+        return `
+          <div id="q1-pic-card-${pic.letter}"
+               onclick="onQ1PicSelect('${pic.letter}')"
+               data-q1-pic="${pic.letter}"
+               class="p-2.5 rounded-2xl border-2 border-slate-200 bg-slate-50/70 hover:bg-teal-50/50 hover:border-teal-400 transition cursor-pointer flex items-center justify-between gap-2 shadow-sm">
+            <div class="flex items-center gap-2">
+              <div id="q1-pic-dot-${pic.letter}"
+                   style="background-color: ${dotColor}"
+                   class="match-dot border-2 border-white shadow-md shrink-0"></div>
+              <span class="en-font font-black text-teal-700 text-lg">${pic.letter}</span>
+            </div>
+            <div class="flex-1 flex justify-center">
+              ${Q1_SVGS[pic.letter]}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      requestAnimationFrame(() => drawQ1Arrows());
+    }
+
+    function onQ1WordSelect(wordId) {
+      const wordObj = EXAM_DATA.q1.words.find(w => w.id === wordId);
+      if (wordObj) speakText(wordObj.word);
+      playTone('click');
+
+      if (activeQ1WordId === wordId) {
+        activeQ1WordId = null;
+      } else {
+        activeQ1WordId = wordId;
+      }
+      renderQuestion1();
+    }
+
+    function onQ1PicSelect(picLetter) {
+      if (activeQ1WordId !== null) {
+        connectQ1Pair(activeQ1WordId, picLetter);
+        activeQ1WordId = null;
+      } else {
+        // If clicking an already connected picture, remove its connection
+        const existingWord = EXAM_DATA.q1.words.find(w => userState.q1[w.id] === picLetter);
+        if (existingWord) {
+          userState.q1[existingWord.id] = '';
+          userState.checked[1] = false;
+          document.getElementById('q1-feedback').classList.add('hidden');
+          playTone('click');
+          renderQuestion1();
+          updateDashboard();
+        }
+      }
+    }
+
+    function connectQ1Pair(wordId, picLetter) {
+      // Remove any previous word connected to this picture so it stays 1-to-1
+      Object.keys(userState.q1).forEach(k => {
+        if (userState.q1[k] === picLetter) userState.q1[k] = '';
+      });
+      userState.q1[wordId] = picLetter;
+      userState.checked[1] = false;
+      document.getElementById('q1-feedback').classList.add('hidden');
+      playTone('connect');
+      renderQuestion1();
+      updateDashboard();
+    }
+
+    function drawQ1Arrows(tempLine = null) {
+      const svg = document.getElementById('q1-svg');
+      const board = document.getElementById('q1-board');
+      if (!svg || !board) return;
+
+      const boardRect = board.getBoundingClientRect();
+      if (boardRect.width === 0) return;
+
+      let defsHtml = `
+        <defs>
+          ${EXAM_DATA.q1.words.map(w => `
+            <marker id="q1-arrow-${w.id}" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,1 L7,4 L0,7 Z" fill="${userState.checked[1] ? (userState.q1[w.id] === w.correctPic ? '#16a34a' : '#dc2626') : w.color}" />
+            </marker>
+          `).join('')}
+          <marker id="q1-arrow-temp" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,1 L7,4 L0,7 Z" fill="#4f46e5" />
+          </marker>
+        </defs>
+      `;
+
+      let pathsHtml = '';
+
+      EXAM_DATA.q1.words.forEach(w => {
+        const picLetter = userState.q1[w.id];
+        if (!picLetter) return;
+
+        const startEl = document.getElementById(`q1-word-dot-${w.id}`);
+        const endEl = document.getElementById(`q1-pic-dot-${picLetter}`);
+        if (!startEl || !endEl) return;
+
+        const sRect = startEl.getBoundingClientRect();
+        const eRect = endEl.getBoundingClientRect();
+
+        const x1 = sRect.left + sRect.width / 2 - boardRect.left;
+        const y1 = sRect.top + sRect.height / 2 - boardRect.top;
+        const x2 = eRect.left + eRect.width / 2 - boardRect.left;
+        const y2 = eRect.top + eRect.height / 2 - boardRect.top;
+
+        const strokeColor = userState.checked[1]
+          ? (picLetter === w.correctPic ? '#16a34a' : '#dc2626')
+          : w.color;
+
+        const cx1 = x1 + (x2 - x1) * 0.4;
+        const cx2 = x1 + (x2 - x1) * 0.6;
+
+        pathsHtml += `
+          <path d="M ${x1} ${y1} C ${cx1} ${y1}, ${cx2} ${y2}, ${x2} ${y2}"
+                fill="none"
+                stroke="${strokeColor}"
+                stroke-width="3.5"
+                stroke-linecap="round"
+                marker-end="url(#q1-arrow-${w.id})" />
+        `;
+      });
+
+      if (tempLine) {
+        pathsHtml += `
+          <line x1="${tempLine.x1}" y1="${tempLine.y1}" x2="${tempLine.x2}" y2="${tempLine.y2}"
+                stroke="#4f46e5" stroke-width="3" stroke-dasharray="6,4"
+                marker-end="url(#q1-arrow-temp)" />
+        `;
+      }
+
+      svg.innerHTML = defsHtml + pathsHtml;
+    }
+
+    function clearQ1() {
+      Object.keys(userState.q1).forEach(k => userState.q1[k] = '');
+      activeQ1WordId = null;
+      userState.checked[1] = false;
+      document.getElementById('q1-feedback').classList.add('hidden');
+      playTone('click');
+      renderQuestion1();
+      updateDashboard();
+    }
+
+    /**************************************************************
+     * 7. QUESTION 2: READ AND WRITE + LOOK AND MATCH (10 POINTS)
+     **************************************************************/
+    function onZoneDragOver(e) {
+      e.preventDefault();
+      e.currentTarget.classList.add('drag-over');
+    }
+
+    function onZoneDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over');
+    }
+
+    function onQ2WordDragStart(e, word) {
+      e.dataTransfer.setData('text/plain', word);
+      speakText(word);
+    }
+
+    function renderQuestion2() {
+      const bankEl = document.getElementById('q2-word-bank');
+      const sentencesCol = document.getElementById('q2-sentences-col');
+      const picsCol = document.getElementById('q2-pics-col');
+
+      const usedWords = Object.values(userState.q2_words).map(w => w.toLowerCase());
+
+      bankEl.innerHTML = EXAM_DATA.q2.wordBank.map(word => {
+        const isUsed = usedWords.includes(word.toLowerCase());
+        const isSelected = activeQ2WordChip === word;
+        return `
+          <div draggable="${!isUsed}"
+               ondragstart="onQ2WordDragStart(event, '${word}')"
+               onclick="onQ2BankWordClick('${word}', ${isUsed})"
+               class="word-chip en-font px-5 py-2 rounded-xl font-black text-lg border-2 select-none shadow-sm
+               ${isUsed
+                 ? 'bg-slate-100 text-slate-300 border-slate-200 line-through cursor-not-allowed'
+                 : isSelected
+                   ? 'selected-chip'
+                   : 'bg-white text-pink-700 border-pink-300 hover:bg-pink-100'}">
+            ${word}
+          </div>
+        `;
+      }).join('');
+
+      sentencesCol.innerHTML = EXAM_DATA.q2.items.map(item => {
+        const chosenWord = userState.q2_words[item.id] || '';
+        const matchedPic = userState.q2_pics[item.id] || '';
+        const isWordCorrect = chosenWord.toLowerCase() === item.correctWord.toLowerCase();
+        const isPicCorrect = matchedPic === item.correctPic;
+        const isMatchActive = activeQ2SentenceMatchId === item.id;
+
+        let slotStyle = 'border-pink-400 bg-pink-50/50 text-pink-900 hover:border-pink-600';
+        let boxStyle = 'border-lime-600 bg-white text-lime-900 hover:bg-lime-50';
+        let fbHtml = '';
+
+        if (userState.checked[2]) {
+          slotStyle = isWordCorrect
+            ? 'border-emerald-600 bg-emerald-50 text-emerald-900'
+            : 'border-rose-500 bg-rose-50 text-rose-900';
+
+          boxStyle = isPicCorrect
+            ? 'border-emerald-600 bg-emerald-100 text-emerald-900'
+            : 'border-rose-500 bg-rose-100 text-rose-900';
+
+          fbHtml = `
+            <div class="mt-2 text-xs font-bold flex flex-wrap items-center gap-3" dir="rtl">
+              <span class="${isWordCorrect ? 'text-emerald-700' : 'text-rose-700'}">
+                ${isWordCorrect ? '✅ الكلمة صحيحة' : `❌ الكلمة الصحيحة: <u class="en-font">${item.correctWord}</u>`}
+              </span>
+              <span class="${isPicCorrect ? 'text-emerald-700' : 'text-rose-700'}">
+                ${isPicCorrect ? '✅ التوصيل صحيح' : `❌ الصورة الصحيحة: <u class="en-font">(${item.correctPic})</u>`}
+              </span>
+            </div>
+          `;
+        } else {
+          if (chosenWord) slotStyle = 'border-indigo-600 bg-indigo-50 text-indigo-950';
+          if (isMatchActive) boxStyle = 'match-card-active';
+          else if (matchedPic) boxStyle = 'border-lime-600 bg-lime-100 text-indigo-900';
+        }
+
+        const fullSpeech = `${item.prefix} ${item.correctWord}.`;
+        // Show the remainder after the first letter when filled, or full word clearly
+        const remainderText = chosenWord ? chosenWord.slice(1) : '';
+
+        return `
+          <div class="p-3.5 md:p-4 rounded-2xl border-2 border-slate-200 bg-white shadow-sm flex items-center justify-between gap-3">
+            <div class="flex-1">
+              <div class="flex flex-wrap items-center gap-1.5 en-font text-base md:text-lg font-bold text-slate-800 leading-relaxed">
+                <button type="button"
+                        onclick="speakText('${fullSpeech.replace(/'/g, "\\'")}')"
+                        class="w-7 h-7 rounded-full bg-pink-100 hover:bg-pink-200 text-pink-700 flex items-center justify-center text-xs shrink-0"
+                        title="استمع للجملة">🔊</button>
+                <span class="text-teal-700 font-black mr-1">${item.id}</span>
+                <span>${item.prefix}</span>
+
+                <!-- Word Dropzone starting with firstLetter -->
+                <span ondragover="onZoneDragOver(event)"
+                      ondragleave="onZoneDragLeave(event)"
+                      ondrop="onQ2WordDrop(event, ${item.id})"
+                      onclick="onQ2WordSlotClick(${item.id})"
+                      class="drop-zone inline-flex items-baseline px-3 py-0.5 rounded-xl border-b-2 cursor-pointer ${slotStyle}">
+                  <span class="font-black text-slate-900">${item.firstLetter}</span>
+                  ${chosenWord
+                    ? `<span class="font-black text-sky-600 underline">${remainderText}</span><span class="ml-2 text-xs text-rose-500 font-bold">✕</span>`
+                    : `<span class="text-slate-400 tracking-widest ml-0.5">___________</span>`
+                  }
+                </span>
+                <span>${item.suffix}</span>
+
+                <!-- Green Match Box [ ] -->
+                <button type="button"
+                        onclick="onQ2MatchBoxClick(${item.id})"
+                        title="اضغط هنا ثم اضغط على الصورة المناسبة للتوصيل بالسهم"
+                        class="ml-2 w-9 h-9 rounded-lg border-2 font-black text-base inline-flex items-center justify-center transition shadow-sm ${boxStyle}">
+                  ${matchedPic || ''}
+                </button>
+              </div>
+              ${fbHtml}
+            </div>
+
+            <!-- Connection Dot for Arrow -->
+            <div id="q2-sent-dot-${item.id}"
+                 onclick="onQ2MatchBoxClick(${item.id})"
+                 onmousedown="startArrowDrag(event, 2, ${item.id})"
+                 ontouchstart="startArrowDrag(event, 2, ${item.id})"
+                 style="background-color: ${matchedPic ? item.color : '#cbd5e1'}"
+                 class="match-dot border-2 border-white shadow-md shrink-0"
+                 title="اسحب السهم إلى الصورة المناسبة"></div>
+          </div>
+        `;
+      }).join('');
+
+      picsCol.innerHTML = EXAM_DATA.q2.pictures.map(pic => {
+        const matchedItem = EXAM_DATA.q2.items.find(it => userState.q2_pics[it.id] === pic.letter);
+        const dotColor = matchedItem ? matchedItem.color : '#cbd5e1';
+
+        return `
+          <div id="q2-pic-card-${pic.letter}"
+               onclick="onQ2PicSelect('${pic.letter}')"
+               data-q2-pic="${pic.letter}"
+               class="p-2 rounded-2xl border-2 border-pink-400 bg-white hover:bg-pink-50/40 transition cursor-pointer flex items-center gap-2.5 shadow-sm">
+            <div id="q2-pic-dot-${pic.letter}"
+                 style="background-color: ${dotColor}"
+                 class="match-dot border-2 border-white shadow-md shrink-0"></div>
+            <span class="en-font font-black text-teal-700 text-lg">${pic.letter}</span>
+            <div class="flex-1 overflow-hidden rounded-xl border border-pink-200">
+              ${Q2_SVGS[pic.letter]}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      requestAnimationFrame(() => drawQ2Arrows());
+    }
+
+    function onQ2BankWordClick(word, isUsed) {
+      if (isUsed) return;
+      playTone('click');
+      speakText(word);
+      activeQ2WordChip = (activeQ2WordChip === word) ? null : word;
+      renderQuestion2();
+    }
+
+    function onQ2WordSlotClick(itemId) {
+      if (activeQ2WordChip) {
+        // Remove word if used elsewhere
+        Object.keys(userState.q2_words).forEach(k => {
+          if (userState.q2_words[k] === activeQ2WordChip) userState.q2_words[k] = '';
+        });
+        userState.q2_words[itemId] = activeQ2WordChip;
+        activeQ2WordChip = null;
+        userState.checked[2] = false;
+        document.getElementById('q2-feedback').classList.add('hidden');
+        playTone('connect');
+        renderQuestion2();
+        updateDashboard();
+      } else if (userState.q2_words[itemId]) {
+        userState.q2_words[itemId] = '';
+        userState.checked[2] = false;
+        document.getElementById('q2-feedback').classList.add('hidden');
+        playTone('click');
+        renderQuestion2();
+        updateDashboard();
+      }
+    }
+
+    function onQ2WordDrop(e, itemId) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over');
+      const word = e.dataTransfer.getData('text/plain');
+      if (!word || !EXAM_DATA.q2.wordBank.includes(word)) return;
+
+      Object.keys(userState.q2_words).forEach(k => {
+        if (userState.q2_words[k] === word) userState.q2_words[k] = '';
+      });
+      userState.q2_words[itemId] = word;
+      activeQ2WordChip = null;
+      userState.checked[2] = false;
+      document.getElementById('q2-feedback').classList.add('hidden');
+      playTone('connect');
+      renderQuestion2();
+      updateDashboard();
+    }
+
+    function onQ2MatchBoxClick(itemId) {
+      playTone('click');
+      activeQ2SentenceMatchId = (activeQ2SentenceMatchId === itemId) ? null : itemId;
+      renderQuestion2();
+    }
+
+    function onQ2PicSelect(picLetter) {
+      if (activeQ2SentenceMatchId !== null) {
+        connectQ2Pair(activeQ2SentenceMatchId, picLetter);
+        activeQ2SentenceMatchId = null;
+      } else {
+        const existingItem = EXAM_DATA.q2.items.find(it => userState.q2_pics[it.id] === picLetter);
+        if (existingItem) {
+          userState.q2_pics[existingItem.id] = '';
+          userState.checked[2] = false;
+          document.getElementById('q2-feedback').classList.add('hidden');
+          playTone('click');
+          renderQuestion2();
+          updateDashboard();
+        }
+      }
+    }
+
+    function connectQ2Pair(itemId, picLetter) {
+      Object.keys(userState.q2_pics).forEach(k => {
+        if (userState.q2_pics[k] === picLetter) userState.q2_pics[k] = '';
+      });
+      userState.q2_pics[itemId] = picLetter;
+      userState.checked[2] = false;
+      document.getElementById('q2-feedback').classList.add('hidden');
+      playTone('connect');
+      renderQuestion2();
+      updateDashboard();
+    }
+
+    function drawQ2Arrows(tempLine = null) {
+      const svg = document.getElementById('q2-svg');
+      const board = document.getElementById('q2-board');
+      if (!svg || !board) return;
+
+      const boardRect = board.getBoundingClientRect();
+      if (boardRect.width === 0) return;
+
+      let defsHtml = `
+        <defs>
+          ${EXAM_DATA.q2.items.map(it => `
+            <marker id="q2-arrow-${it.id}" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,1 L7,4 L0,7 Z" fill="${userState.checked[2] ? (userState.q2_pics[it.id] === it.correctPic ? '#16a34a' : '#dc2626') : it.color}" />
+            </marker>
+          `).join('')}
+          <marker id="q2-arrow-temp" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,1 L7,4 L0,7 Z" fill="#4f46e5" />
+          </marker>
+        </defs>
+      `;
+
+      let pathsHtml = '';
+
+      EXAM_DATA.q2.items.forEach(it => {
+        const picLetter = userState.q2_pics[it.id];
+        if (!picLetter) return;
+
+        const startEl = document.getElementById(`q2-sent-dot-${it.id}`);
+        const endEl = document.getElementById(`q2-pic-dot-${picLetter}`);
+        if (!startEl || !endEl) return;
+
+        const sRect = startEl.getBoundingClientRect();
+        const eRect = endEl.getBoundingClientRect();
+
+        const x1 = sRect.left + sRect.width / 2 - boardRect.left;
+        const y1 = sRect.top + sRect.height / 2 - boardRect.top;
+        const x2 = eRect.left + eRect.width / 2 - boardRect.left;
+        const y2 = eRect.top + eRect.height / 2 - boardRect.top;
+
+        const strokeColor = userState.checked[2]
+          ? (picLetter === it.correctPic ? '#16a34a' : '#dc2626')
+          : it.color;
+
+        const cx1 = x1 + (x2 - x1) * 0.4;
+        const cx2 = x1 + (x2 - x1) * 0.6;
+
+        pathsHtml += `
+          <path d="M ${x1} ${y1} C ${cx1} ${y1}, ${cx2} ${y2}, ${x2} ${y2}"
+                fill="none"
+                stroke="${strokeColor}"
+                stroke-width="3.5"
+                stroke-linecap="round"
+                marker-end="url(#q2-arrow-${it.id})" />
+        `;
+      });
+
+      if (tempLine) {
+        pathsHtml += `
+          <line x1="${tempLine.x1}" y1="${tempLine.y1}" x2="${tempLine.x2}" y2="${tempLine.y2}"
+                stroke="#4f46e5" stroke-width="3" stroke-dasharray="6,4"
+                marker-end="url(#q2-arrow-temp)" />
+        `;
+      }
+
+      svg.innerHTML = defsHtml + pathsHtml;
+    }
+
+    function clearQ2() {
+      Object.keys(userState.q2_words).forEach(k => userState.q2_words[k] = '');
+      Object.keys(userState.q2_pics).forEach(k => userState.q2_pics[k] = '');
+      activeQ2WordChip = null;
+      activeQ2SentenceMatchId = null;
+      userState.checked[2] = false;
+      document.getElementById('q2-feedback').classList.add('hidden');
+      playTone('click');
+      renderQuestion2();
+      updateDashboard();
+    }
+
+    /**************************************************************
+     * 8. DRAGGING ARROW HANDLERS (FOR QUESTION 1 & QUESTION 2)
+     **************************************************************/
+    function startArrowDrag(e, qNum, sourceId) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      const boardId = qNum === 1 ? 'q1-board' : 'q2-board';
+      const dotId = qNum === 1 ? `q1-word-dot-${sourceId}` : `q2-sent-dot-${sourceId}`;
+      const board = document.getElementById(boardId);
+      const dot = document.getElementById(dotId);
+      if (!board || !dot) return;
+
+      const boardRect = board.getBoundingClientRect();
+      const dotRect = dot.getBoundingClientRect();
+
+      dragArrowState = {
+        qNum,
+        sourceId,
+        startX: dotRect.left + dotRect.width / 2 - boardRect.left,
+        startY: dotRect.top + dotRect.height / 2 - boardRect.top
+      };
+
+      window.addEventListener('mousemove', onArrowDragMove);
+      window.addEventListener('touchmove', onArrowDragMove, { passive: false });
+      window.addEventListener('mouseup', onArrowDragEnd);
+      window.addEventListener('touchend', onArrowDragEnd);
+    }
+
+    function onArrowDragMove(e) {
+      if (!dragArrowState) return;
+      if (e.cancelable) e.preventDefault();
+
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      const boardId = dragArrowState.qNum === 1 ? 'q1-board' : 'q2-board';
+      const board = document.getElementById(boardId);
+      if (!board) return;
+
+      const boardRect = board.getBoundingClientRect();
+      const tempLine = {
+        x1: dragArrowState.startX,
+        y1: dragArrowState.startY,
+        x2: clientX - boardRect.left,
+        y2: clientY - boardRect.top
+      };
+
+      if (dragArrowState.qNum === 1) drawQ1Arrows(tempLine);
+      else drawQ2Arrows(tempLine);
+    }
+
+    function onArrowDragEnd(e) {
+      if (!dragArrowState) return;
+
+      const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+      const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+
+      const elUnder = document.elementFromPoint(clientX, clientY);
+      if (elUnder) {
+        if (dragArrowState.qNum === 1) {
+          const picCard = elUnder.closest('[data-q1-pic]');
+          if (picCard) {
+            const picLetter = picCard.getAttribute('data-q1-pic');
+            connectQ1Pair(dragArrowState.sourceId, picLetter);
+          } else {
+            drawQ1Arrows();
+          }
+        } else {
+          const picCard = elUnder.closest('[data-q2-pic]');
+          if (picCard) {
+            const picLetter = picCard.getAttribute('data-q2-pic');
+            connectQ2Pair(dragArrowState.sourceId, picLetter);
+          } else {
+            drawQ2Arrows();
+          }
+        }
+      }
+
+      dragArrowState = null;
+      window.removeEventListener('mousemove', onArrowDragMove);
+      window.removeEventListener('touchmove', onArrowDragMove);
+      window.removeEventListener('mouseup', onArrowDragEnd);
+      window.removeEventListener('touchend', onArrowDragEnd);
+    }
+
+    /**************************************************************
+     * 9. QUESTION 3: ORDER THE WORDS TO MAKE SENTENCES (5 ITEMS)
+     **************************************************************/
+    function getQ3BuiltSentence(itemId) {
+      const item = EXAM_DATA.q3.find(x => x.id === itemId);
+      const indices = userState.q3[itemId] || [];
+      return indices.map(idx => item.chunks[idx]).join(' ').replace(/\s+\./g, '.');
+    }
+
+    function renderQuestion3() {
+      const listEl = document.getElementById('q3-list');
+      listEl.innerHTML = EXAM_DATA.q3.map(item => {
+        const chosenIndices = userState.q3[item.id] || [];
+        const built = getQ3BuiltSentence(item.id);
+        const isCorrect = normalizeSentence(built) === normalizeSentence(item.correct);
+
+        let lineStyle = 'border-slate-300 bg-slate-50/70';
+        let fbHtml = '';
+
+        if (userState.checked[3]) {
+          if (isCorrect) {
+            lineStyle = 'border-emerald-600 bg-emerald-50';
+            fbHtml = `<div class="mt-2 text-xs font-bold text-emerald-700" dir="rtl">✅ ترتيب صحيح ممتاز! (${item.ar})</div>`;
+          } else {
+            lineStyle = 'border-rose-500 bg-rose-50';
+            fbHtml = `<div class="mt-2 text-xs font-bold text-rose-700" dir="rtl">❌ الترتيب الصحيح: <span class="en-font underline font-black">${item.correct}</span></div>`;
+          }
+        }
+
+        const availableChips = item.chunks.map((chunk, idx) => {
+          const isUsed = chosenIndices.includes(idx);
+          return `
+            <button type="button"
+                    onclick="onQ3AddChunk(${item.id}, ${idx})"
+                    ${isUsed ? 'disabled' : ''}
+                    class="en-font px-3.5 py-1.5 rounded-xl border-2 font-bold text-sm md:text-base transition
+                    ${isUsed
+                      ? 'bg-slate-100 text-slate-300 border-slate-200 line-through cursor-not-allowed'
+                      : 'bg-white text-indigo-950 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-400 shadow-sm'}">
+              ${chunk}
+            </button>
+          `;
+        }).join('');
+
+        const placedChips = chosenIndices.map((chunkIdx, pos) => {
+          const text = item.chunks[chunkIdx];
+          return `
+            <button type="button"
+                    onclick="onQ3RemoveChunk(${item.id}, ${pos})"
+                    class="en-font px-3 py-1 rounded-lg bg-indigo-600 hover:bg-rose-600 text-white font-bold text-sm md:text-base shadow-sm transition"
+                    title="اضغط لإرجاع الكلمة">
+              ${text}
+            </button>
+          `;
+        }).join('');
+
+        return `
+          <div class="p-4 md:p-5 rounded-2xl border-2 border-slate-200 bg-white shadow-sm">
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <div class="en-font text-base md:text-lg font-bold text-slate-700">
+                <span class="text-teal-700 font-black mr-2">${item.id}</span> ${item.prompt}
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" onclick="speakText('${item.correct.replace(/'/g, "\\'")}')" class="w-8 h-8 rounded-full bg-indigo-100 hover:bg-indigo-200 text-indigo-700 flex items-center justify-center text-xs" title="استمع للجملة">🔊</button>
+                <button type="button" onclick="onQ3ResetItem(${item.id})" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold" dir="rtl">مسح ↺</button>
+              </div>
+            </div>
+
+            <!-- Word Chips to Click -->
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+              ${availableChips}
+            </div>
+
+            <!-- Sentence Answer Line -->
+            <div class="min-h-[48px] p-2.5 rounded-xl border-b-2 ${lineStyle} flex flex-wrap items-center gap-2">
+              ${placedChips || `<span class="text-xs text-slate-400 font-semibold" dir="rtl">اضغط على الكلمات بالترتيب لتكوين الجملة هنا...</span>`}
+            </div>
+            ${fbHtml}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function onQ3AddChunk(itemId, chunkIdx) {
+      if (!userState.q3[itemId].includes(chunkIdx)) {
+        const chunkText = EXAM_DATA.q3.find(x => x.id === itemId).chunks[chunkIdx];
+        playTone('click');
+        if (chunkText !== '.') speakText(chunkText);
+        userState.q3[itemId].push(chunkIdx);
+        userState.checked[3] = false;
+        document.getElementById('q3-feedback').classList.add('hidden');
+        renderQuestion3();
+        updateDashboard();
+      }
+    }
+
+    function onQ3RemoveChunk(itemId, pos) {
+      playTone('click');
+      userState.q3[itemId].splice(pos, 1);
+      userState.checked[3] = false;
+      document.getElementById('q3-feedback').classList.add('hidden');
+      renderQuestion3();
+      updateDashboard();
+    }
+
+    function onQ3ResetItem(itemId) {
+      playTone('click');
+      userState.q3[itemId] = [];
+      userState.checked[3] = false;
+      document.getElementById('q3-feedback').classList.add('hidden');
+      renderQuestion3();
+      updateDashboard();
+    }
+
+    function clearQ3() {
+      [1, 2, 3, 4, 5].forEach(k => userState.q3[k] = []);
+      userState.checked[3] = false;
+      document.getElementById('q3-feedback').classList.add('hidden');
+      playTone('click');
+      renderQuestion3();
+      updateDashboard();
+    }
+
+    /**************************************************************
+     * 10. NAVIGATION, QUESTION BOARD & SCORING (23 POINTS TOTAL)
+     **************************************************************/
+    function getQuestionProgress(qNum) {
+      if (qNum === 1) {
+        const answered = Object.values(userState.q1).filter(Boolean).length;
+        return { answered, total: 8 };
+      } else if (qNum === 2) {
+        const wCount = Object.values(userState.q2_words).filter(Boolean).length;
+        const pCount = Object.values(userState.q2_pics).filter(Boolean).length;
+        return { answered: wCount + pCount, total: 10 };
+      } else {
+        const count = [1, 2, 3, 4, 5].filter(k => (userState.q3[k] || []).length > 0).length;
+        return { answered: count, total: 5 };
+      }
+    }
+
+    function calculateScores() {
+      let s1 = 0;
+      EXAM_DATA.q1.words.forEach(item => {
+        if (userState.q1[item.id] === item.correctPic) s1++;
+      });
+
+      let s2 = 0;
+      EXAM_DATA.q2.items.forEach(item => {
+        if ((userState.q2_words[item.id] || '').toLowerCase() === item.correctWord.toLowerCase()) s2++;
+        if (userState.q2_pics[item.id] === item.correctPic) s2++;
+      });
+
+      let s3 = 0;
+      EXAM_DATA.q3.forEach(item => {
+        if (normalizeSentence(getQ3BuiltSentence(item.id)) === normalizeSentence(item.correct)) s3++;
+      });
+
+      const totalScore = s1 + s2 + s3;
+      const maxScore = 23;
+      const percentage = Math.round((totalScore / maxScore) * 100);
+
+      return { s1, s2, s3, totalScore, maxScore, percentage };
+    }
+
+    function updateDashboard() {
+      const qTitles = [
+        { num: 1, title: 'س1: وصل الكلمة بالصورة بالسهم', icon: '1️⃣' },
+        { num: 2, title: 'س2: أكمل الكلمة ووصل بالصورة', icon: '2️⃣' },
+        { num: 3, title: 'س3: رتب الكلمات لتكوين جمل', icon: '3️⃣' }
+      ];
+
+      let totalAnswered = 0;
+      const navList = document.getElementById('question-nav-list');
+
+      navList.innerHTML = qTitles.map(q => {
+        const prog = getQuestionProgress(q.num);
+        totalAnswered += prog.answered;
+
+        const headerBadge = document.getElementById(`q${q.num}-badge`);
+        if (headerBadge) headerBadge.textContent = `${prog.answered} / ${prog.total}`;
+
+        const isCurrent = !showAllMode && currentQuestion === q.num;
+        const isComplete = prog.answered === prog.total;
+
+        let btnStyle = 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200';
+        let badgeStyle = 'bg-slate-200 text-slate-700';
+
+        if (isCurrent) {
+          btnStyle = 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200';
+          badgeStyle = 'bg-white text-indigo-700';
+        } else if (isComplete) {
+          btnStyle = 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-200';
+          badgeStyle = 'bg-emerald-600 text-white';
+        }
+
+        return `
+          <button onclick="goToQuestion(${q.num})"
+                  class="w-full p-3 rounded-2xl border-2 transition flex items-center justify-between text-right ${btnStyle}">
+            <div class="flex items-center gap-2.5">
+              <span class="text-lg">${q.icon}</span>
+              <div>
+                <div class="text-xs font-extrabold">${q.title}</div>
+                <div class="text-[11px] opacity-80 font-semibold">
+                  ${isComplete ? 'مكتمل بالكامل ✓' : prog.answered > 0 ? 'قيد الحل...' : 'لم يبدأ بعد'}
+                </div>
+              </div>
+            </div>
+            <span class="text-xs font-black px-2.5 py-1 rounded-xl ${badgeStyle}">
+              ${prog.answered}/${prog.total}
+            </span>
+          </button>
+        `;
+      }).join('');
+
+      const overallPct = Math.round((totalAnswered / 23) * 100);
+      document.getElementById('overall-progress-badge').textContent = `${totalAnswered} / 23`;
+      document.getElementById('overall-progress-pct').textContent = `${overallPct}%`;
+      document.getElementById('overall-progress-bar').style.width = `${overallPct}%`;
+    }
+
+    function goToQuestion(qNum) {
+      currentQuestion = qNum;
+      if (showAllMode) {
+        document.getElementById(`q-section-${qNum}`).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        [1, 2, 3].forEach(n => {
+          const sec = document.getElementById(`q-section-${n}`);
+          if (n === qNum) sec.classList.remove('hidden');
+          else sec.classList.add('hidden');
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      playTone('click');
+      updateDashboard();
+      requestAnimationFrame(() => {
+        drawQ1Arrows();
+        drawQ2Arrows();
+      });
+    }
+
+    function toggleShowAllQuestions() {
+      showAllMode = !showAllMode;
+      const btnText = document.getElementById('view-mode-text');
+      if (showAllMode) {
+        [1, 2, 3].forEach(n => document.getElementById(`q-section-${n}`).classList.remove('hidden'));
+        btnText.textContent = 'عرض سؤال واحد فقط';
+      } else {
+        [1, 2, 3].forEach(n => {
+          const sec = document.getElementById(`q-section-${n}`);
+          if (n === currentQuestion) sec.classList.remove('hidden');
+          else sec.classList.add('hidden');
+        });
+        btnText.textContent = 'عرض جميع الأسئلة معاً';
+      }
+      updateDashboard();
+      requestAnimationFrame(() => {
+        drawQ1Arrows();
+        drawQ2Arrows();
+      });
+    }
+
+    function checkCurrentQuestion() {
+      checkQuestion(currentQuestion);
+    }
+
+    function checkQuestion(qNum) {
+      userState.checked[qNum] = true;
+      const scores = calculateScores();
+      const qScoreMap = {
+        1: [scores.s1, 8],
+        2: [scores.s2, 10],
+        3: [scores.s3, 5]
+      };
+      const [got, max] = qScoreMap[qNum];
+
+      const fbEl = document.getElementById(`q${qNum}-feedback`);
+      fbEl.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-300', 'text-emerald-900', 'bg-amber-50', 'border-amber-300', 'text-amber-900');
+
+      if (got === max) {
+        playTone('correct');
+        fbEl.classList.add('bg-emerald-50', 'border-emerald-300', 'text-emerald-900');
+        fbEl.innerHTML = `🌟 <strong>تغذية راجعة:</strong> ممتاز جداً! جميع إجاباتك في هذا السؤال صحيحة (${got} من ${max}). بارك الله فيك!`;
+      } else {
+        playTone('wrong');
+        fbEl.classList.add('bg-amber-50', 'border-amber-300', 'text-amber-900');
+        fbEl.innerHTML = `💡 <strong>تغذية راجعة:</strong> حصلت على (${got} من ${max}) في هذا السؤال. تم توضيح الإجابات الصحيحة باللون الأخضر وتصحيح الأخطاء باللون الأحمر لتتمكن من مراجعتها.`;
+      }
+
+      if (qNum === 1) renderQuestion1();
+      if (qNum === 2) renderQuestion2();
+      if (qNum === 3) renderQuestion3();
+    }
+
+    /**************************************************************
+     * 11. FINISH EXAM, MOTIVATION, FEEDBACK & PRINTABLE REPORT
+     **************************************************************/
+    function getMotivationalData(pct) {
+      if (pct >= 90) {
+        return {
+          trophy: '🏆',
+          stars: '⭐⭐⭐⭐⭐',
+          grade: 'ممتاز ومتميز جداً',
+          heading: 'أداء مبهر! أنت بطل متألق في اللغة الإنجليزية 🌟',
+          message: 'ما شاء الله! لقد أتقنت توصيل المفردات بالصور، وإكمال الجمل بالصفات المناسبة، وترتيب الكلمات مع ظروف التكرار بدقة عالية. استمر على هذا التفوق!'
+        };
+      } else if (pct >= 75) {
+        return {
+          trophy: '🥇',
+          stars: '⭐⭐⭐⭐',
+          grade: 'جيد جداً',
+          heading: 'عمل رائع جداً! خطوة واحدة نحو الدرجة الكاملة 👏',
+          message: 'أحسنت صنعاً! معظم إجاباتك صحيحة ودقيقة. راجع الملاحظات البسيطة في جدول التغذية الراجعة بالأسفل لتصل إلى 100% في المرة القادمة.'
+        };
+      } else if (pct >= 50) {
+        return {
+          trophy: '🥈',
+          stars: '⭐⭐⭐',
+          grade: 'جيد',
+          heading: 'محاولة طيبة! لديك أساس جيد ويمكنك تحقيق الأفضل 💪',
+          message: 'جهد مشكور! لقد أجبت على عدد جيد من الفقرات، ويمكنك الاستفادة من التغذية الراجعة التفصيلية بالأسفل لمراجعة المفردات وترتيب الجمل وإعادة المحاولة.'
+        };
+      } else {
+        return {
+          trophy: '🌱',
+          stars: '⭐⭐',
+          grade: 'يحتاج إلى مزيد من التدريب',
+          heading: 'لا تستسلم! كل محاولة تجعلك أقوى وأكثر معرفة 🚀',
+          message: 'التعلم رحلة ممتعة! استعرض الإجابات الصحيحة في التغذية الراجعة بالأسفل واستمع لنطق الكلمات والجمل، ثم أعد المحاولة وستلاحظ تحسناً كبيراً بإذن الله.'
+        };
+      }
+    }
+
+    function finishExam() {
+      examFinished = true;
+      userState.checked = { 1: true, 2: true, 3: true };
+
+      renderQuestion1();
+      renderQuestion2();
+      renderQuestion3();
+
+      const scores = calculateScores();
+      const mot = getMotivationalData(scores.percentage);
+      const studentName = document.getElementById('student-name').value.trim() || 'طالب متميز';
+
+      const sidebarCard = document.getElementById('sidebar-result-card');
+      sidebarCard.classList.remove('hidden');
+      document.getElementById('sidebar-score-text').textContent = `${scores.totalScore} / ${scores.maxScore}`;
+      document.getElementById('sidebar-pct-text').textContent = `${scores.percentage}% - ${mot.grade}`;
+
+      document.getElementById('modal-trophy').textContent = mot.trophy;
+      document.getElementById('modal-title').textContent = mot.grade;
+      document.getElementById('modal-total-score').textContent = `${scores.totalScore} / ${scores.maxScore}`;
+      document.getElementById('modal-percentage').textContent = `${scores.percentage}%`;
+      document.getElementById('modal-stars').textContent = mot.stars;
+      document.getElementById('modal-student-name').textContent = studentName;
+      document.getElementById('modal-motivation-heading').textContent = mot.heading;
+      document.getElementById('modal-motivation-text').textContent = mot.message;
+
+      const breakdownItems = [
+        { num: 1, name: 'س1: توصيل الكلمة بالصورة بالسهم', got: scores.s1, max: 8 },
+        { num: 2, name: 'س2: إكمال الكلمة وتوصيل الصورة', got: scores.s2, max: 10 },
+        { num: 3, name: 'س3: ترتيب الكلمات لتكوين جمل',   got: scores.s3, max: 5 }
+      ];
+
+      document.getElementById('modal-questions-breakdown').innerHTML = breakdownItems.map(b => {
+        const full = b.got === b.max;
+        return `
+          <div class="p-3.5 rounded-2xl border-2 ${full ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'}">
+            <div class="text-xs font-extrabold text-slate-600 mb-1">${b.name}</div>
+            <div class="flex items-center justify-between">
+              <span class="text-xl font-black ${full ? 'text-emerald-700' : 'text-indigo-900'}">${b.got} / ${b.max}</span>
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${full ? 'bg-emerald-200 text-emerald-900' : 'bg-amber-100 text-amber-800'}">
+                ${full ? 'مكتمل ✓' : 'راجع'}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const detailedHtml = buildDetailedFeedbackHtml();
+      document.getElementById('modal-detailed-feedback').innerHTML = detailedHtml;
+
+      const nowStr = new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+      document.getElementById('print-date').textContent = `التاريخ: ${nowStr}`;
+      document.getElementById('print-student-name').textContent = studentName;
+      document.getElementById('print-total-score').textContent = `${scores.totalScore} / ${scores.maxScore}`;
+      document.getElementById('print-percentage').textContent = `${scores.percentage}%`;
+      document.getElementById('print-grade').textContent = `${mot.grade} ${mot.stars}`;
+      document.getElementById('print-motivation').textContent = `${mot.heading} — ${mot.message}`;
+
+      document.getElementById('print-questions-summary').innerHTML = breakdownItems.map(b => `
+        <div class="p-2.5 rounded-xl border border-slate-300 bg-white">
+          <div class="text-xs font-bold text-slate-600">${b.name}</div>
+          <div class="text-lg font-black text-indigo-900 mt-1">${b.got} / ${b.max}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('print-detailed-tables').innerHTML = detailedHtml;
+
+      openResultsModal();
+      playTone('fanfare');
+      launchConfetti();
+    }
+
+    function buildDetailedFeedbackHtml() {
+      const q1Rows = EXAM_DATA.q1.words.map(w => {
+        const userAns = userState.q1[w.id] || 'فارغ';
+        const ok = userAns === w.correctPic;
+        return `
+          <tr class="border-b border-slate-100 ${ok ? 'bg-emerald-50/40' : 'bg-rose-50/40'}">
+            <td class="py-1.5 px-2.5 en-font font-bold">${w.id}. ${w.word} <span class="text-slate-400 font-normal">(${w.ar})</span></td>
+            <td class="py-1.5 px-2.5 en-font font-bold">${userAns}</td>
+            <td class="py-1.5 px-2.5 en-font font-bold text-emerald-700">${w.correctPic}</td>
+            <td class="py-1.5 px-2.5 font-bold text-center">${ok ? '✅' : '❌'}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const q2Rows = EXAM_DATA.q2.items.map(it => {
+        const userWord = userState.q2_words[it.id] || 'فارغ';
+        const userPic = userState.q2_pics[it.id] || 'فارغ';
+        const okWord = userWord.toLowerCase() === it.correctWord.toLowerCase();
+        const okPic = userPic === it.correctPic;
+        const bothOk = okWord && okPic;
+        return `
+          <tr class="border-b border-slate-100 ${bothOk ? 'bg-emerald-50/40' : 'bg-rose-50/40'}">
+            <td class="py-1.5 px-2.5 en-font font-bold">${it.id}. ${it.prefix} ...</td>
+            <td class="py-1.5 px-2.5 en-font font-bold">${userWord} / (${userPic})</td>
+            <td class="py-1.5 px-2.5 en-font font-bold text-emerald-700">${it.correctWord} / (${it.correctPic})</td>
+            <td class="py-1.5 px-2.5 font-bold text-center">${bothOk ? '✅' : '❌'}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const q3Rows = EXAM_DATA.q3.map(item => {
+        const userAns = getQ3BuiltSentence(item.id) || 'فارغ';
+        const ok = normalizeSentence(userAns) === normalizeSentence(item.correct);
+        return `
+          <tr class="border-b border-slate-100 ${ok ? 'bg-emerald-50/40' : 'bg-rose-50/40'}">
+            <td class="py-1.5 px-2.5 font-bold">#${item.id}</td>
+            <td class="py-1.5 px-2.5 en-font font-bold">${userAns}</td>
+            <td class="py-1.5 px-2.5 en-font font-bold text-emerald-700">${item.correct}</td>
+            <td class="py-1.5 px-2.5 font-bold text-center">${ok ? '✅' : '❌'}</td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <div class="space-y-4">
+          <div class="border border-slate-200 rounded-2xl overflow-hidden">
+            <div class="bg-teal-50 px-4 py-2 font-extrabold text-teal-950 text-xs">السؤال الأول: توصيل الكلمة بالصورة بالسهم (Read, look, and match)</div>
+            <table class="w-full text-right text-xs">
+              <thead class="bg-slate-100 text-slate-600">
+                <tr><th class="py-1.5 px-2.5">الكلمة</th><th class="py-1.5 px-2.5">إجابتك</th><th class="py-1.5 px-2.5">الصورة الصحيحة</th><th class="py-1.5 px-2.5 text-center">التقييم</th></tr>
+              </thead>
+              <tbody>${q1Rows}</tbody>
+            </table>
+          </div>
+
+          <div class="border border-slate-200 rounded-2xl overflow-hidden">
+            <div class="bg-pink-50 px-4 py-2 font-extrabold text-pink-950 text-xs">السؤال الثاني: إكمال الجملة من صندوق الكلمات وتوصيلها بالصورة (Read, write, and match)</div>
+            <table class="w-full text-right text-xs">
+              <thead class="bg-slate-100 text-slate-600">
+                <tr><th class="py-1.5 px-2.5">الجملة</th><th class="py-1.5 px-2.5">إجابتك (الكلمة / الصورة)</th><th class="py-1.5 px-2.5">الصحيح (الكلمة / الصورة)</th><th class="py-1.5 px-2.5 text-center">التقييم</th></tr>
+              </thead>
+              <tbody>${q2Rows}</tbody>
+            </table>
+          </div>
+
+          <div class="border border-slate-200 rounded-2xl overflow-hidden">
+            <div class="bg-indigo-50 px-4 py-2 font-extrabold text-indigo-950 text-xs">السؤال الثالث: ترتيب الكلمات لتكوين جمل (Order the words to make sentences)</div>
+            <table class="w-full text-right text-xs">
+              <thead class="bg-slate-100 text-slate-600">
+                <tr><th class="py-1.5 px-2.5">#</th><th class="py-1.5 px-2.5">إجابتك</th><th class="py-1.5 px-2.5">الجملة الصحيحة</th><th class="py-1.5 px-2.5 text-center">التقييم</th></tr>
+              </thead>
+              <tbody>${q3Rows}</tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function openResultsModal() {
+      document.getElementById('results-modal').classList.remove('hidden');
+    }
+
+    function closeResultsModal() {
+      document.getElementById('results-modal').classList.add('hidden');
+    }
+
+    function reviewOnBoard() {
+      closeResultsModal();
+      if (!showAllMode) {
+        toggleShowAllQuestions();
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function printExamResult() {
+      if (!examFinished) {
+        finishExam();
+      }
+      window.print();
+    }
+
+    function resetAllExam() {
+      clearQ1();
+      clearQ2();
+      clearQ3();
+      userState.checked = { 1: false, 2: false, 3: false };
+      examFinished = false;
+
+      [1, 2, 3].forEach(n => {
+        document.getElementById(`q${n}-feedback`).classList.add('hidden');
+      });
+      document.getElementById('sidebar-result-card').classList.add('hidden');
+
+      goToQuestion(1);
+    }
+
+    /**************************************************************
+     * 12. CONFETTI CELEBRATION ANIMATION
+     **************************************************************/
+    function launchConfetti() {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const pieces = [];
+      const colors = ['#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'];
+
+      for (let i = 0; i < 110; i++) {
+        pieces.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          w: Math.random() * 10 + 6,
+          h: Math.random() * 6 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          vy: Math.random() * 3.5 + 2,
+          vx: (Math.random() - 0.5) * 2.5,
+          angle: Math.random() * 360,
+          vAngle: (Math.random() - 0.5) * 8
+        });
+      }
+
+      let frame = 0;
+      function animate() {
+        frame++;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.y += p.vy;
+          p.x += p.vx;
+          p.angle += p.vAngle;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.angle * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        });
+        if (frame < 180) {
+          requestAnimationFrame(animate);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      animate();
+    }
+  </script>
+</body>
+</html>
